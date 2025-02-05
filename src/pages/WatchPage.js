@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 import ChatComponent from '../components/chat'; // Import the chat component
-import { BASE_URL } from '../constants/constants';
+import { BASE_URL, MOVIE_BASE_URL } from '../constants/constants';
 import { useNavigate } from 'react-router-dom';
 
 const LOGIC_APP_URL = "https://prod-02.northcentralus.logic.azure.com/workflows/d8f674bb74c94ec4a1eeb2a49e36fe58/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=rywwlN76qwqpGLuKRzCGxFlTGxp9xZIitIFGHFEv8yI";
@@ -112,7 +112,7 @@ const WatchPage = () => {
         <div className="w-full max-w-4xl mb-6">
           <video
             ref={videoRef}
-            src='https://movieblob.blob.core.windows.net/movies/videoplayback.mp4'
+            src={`${MOVIE_BASE_URL}/sources/videoplayback.mp4`}
             className="w-full h-auto rounded-lg shadow-lg"
             controls={isHost}
             onTimeUpdate={handleTimeUpdate}
