@@ -1,70 +1,86 @@
-# Getting Started with Create React App
+Great! Here's an outline of the modifications and steps you'd need to implement the Room Creation feature, which would allow users to create private rooms for synchronized movie watching, in an online theater-like experience.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+1. Backend Modifications
+a) Room Management (API and Database)
+Database Changes:
 
-## Available Scripts
+Create a Room model to store room-related data.
+Fields could include:
+RoomId (Unique identifier)
+HostUserId (ID of the host)
+RoomName (Optional, for naming the room)
+CreatedDate (Timestamp for room creation)
+MaxUsers (Optional, number of users allowed in a room)
+MovieUrl (URL of the movie being watched in the room)
+Participants (List of users currently in the room)
+API Endpoints:
 
-In the project directory, you can run:
+Create Room: API to create a new room.
+Join Room: API to join an existing room.
+Get Room Info: API to retrieve details about a room (e.g., list of participants, movie URL, etc.).
+Leave Room: API for users to leave a room.
+Delete Room: API for the host to delete the room (once all users leave, or if the host decides to end the session).
+b) SignalR Modifications for Room Management
+Create a Hub for Room Communication:
 
-### `npm start`
+RoomSyncHub: Create a new SignalR hub that handles the communication between users in a room.
+Each room should have its own SignalR connection to manage user synchronization independently.
+When a user joins a room, they connect to the corresponding hub.
+Real-Time Communication for Sync:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Handle movie synchronization (play, pause, seek), but now only for users in a specific room.
+The host (creator of the room) will control playback, while others in the room can only follow along.
+Ensure No Interference:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Prevent users from sending commands (like play/pause) if they are not the host of the room.
+c) Authentication and Authorization
+Only authenticated users can create or join rooms.
+Authorization check to ensure only the host can control playback, and others can only watch in sync.
+2. Frontend Modifications
+a) UI for Room Creation
+Room Creation Page:
+A simple form where users can create a room, choose the movie, and set the room name (if desired).
+Button to create the room and redirect to the room’s watch page.
+Join Room Page:
+A list of active rooms (or a search bar for rooms to join).
+Option to join an existing room by entering a room code or selecting from the list.
+b) Room Watch Page
+Movie Player:
 
-### `npm test`
+The video player should be linked to the room's movie URL (fetched dynamically from the backend).
+Allow only the host to control playback (play, pause, seek). Regular users should only watch and be synchronized with the host.
+Sync Control:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Use SignalR to listen for changes in playback state and update the UI accordingly.
+Show the list of room participants and their statuses (e.g., playing, paused).
+c) Handling User Actions in the Room:
+Joining/Leaving a Room:
 
-### `npm run build`
+Automatically connect to the room's SignalR hub when a user joins.
+Allow the user to leave the room at any time.
+Display Room Information:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Show who the host is and the movie being watched.
+Add a countdown timer for when the movie will start, if applicable.
+3. Scalability and Flexibility
+Allow for multiple rooms:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Ensure that different rooms can operate independently and maintain their own playback state.
+Limit users per room:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Set a limit on the number of users per room if needed. For example, you could set the MaxUsers field in the room database model.
+Room Cleanup:
 
-### `npm run eject`
+Automatically remove inactive rooms if no one is left or if the host decides to end the session.
+4. Optional Features (Future Enhancements)
+Video Chat for Users in the Room: Allow participants to have a chat or video call while watching.
+Emojis/Reactions: Users can send reactions like thumbs up, clapping, etc., during the movie.
+Queue System: Allow the host to add movies to a queue for future sessions.
+5. Testing and Deployment
+Test the Room Creation Process:
+Create multiple rooms, join them, leave them, and ensure synchronization works smoothly across different users.
+Test Scalability:
+Test how the app handles multiple rooms and users without performance degradation.
+With these changes, your app will evolve into a full-featured platform for synchronized movie watching in private rooms! It’ll allow you and your users to enjoy the "online theater" experience with complete control over the session.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+When you're ready to get started on any of these steps or need more details, feel free to reach out!
