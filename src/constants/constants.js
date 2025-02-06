@@ -1,2 +1,2 @@
-export var BASE_URL = "http://192.168.1.35:7031";
-export var MOVIE_BASE_URL = "http://192.168.1.35:8080"
+export var BASE_URL = "https://day-platforms-express-argued.trycloudflare.com"
+export var MOVIE_BASE_URL = "https://eventually-deer-moderate-headlines.trycloudflare.com"
