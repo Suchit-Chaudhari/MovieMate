@@ -147,7 +147,7 @@ const WatchPage = () => {
         <div className="w-full max-w-4xl mb-6">
           <video
             ref={videoRef}
-            src={`${MOVIE_BASE_URL}/sources/part3.mp4`}
+            src={`${MOVIE_BASE_URL}/movies/sources/mrs.mp4`}
             className="w-full h-auto rounded-lg shadow-lg"
             controls={isHost}
             onTimeUpdate={handleTimeUpdate}
