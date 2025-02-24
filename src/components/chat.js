@@ -55,6 +55,12 @@ const ChatComponent = ({ connection }) => {
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="w-full max-w-lg mt-6 bg-gray-800 p-4 rounded-lg shadow-lg">
       {/* Chat Messages */}
@@ -74,6 +80,7 @@ const ChatComponent = ({ connection }) => {
           className="flex-grow p-2 rounded-md text-black"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
           placeholder="Type a message"
         />
         <button

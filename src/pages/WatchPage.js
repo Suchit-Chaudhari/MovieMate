@@ -16,7 +16,6 @@ const WatchPage = () => {
   const [isHost, setIsHost] = useState(false);
   const [hostTimestamp, setHostTimestamp] = useState(null);
   const [hostPlaybackState, setHostPlaybackState] = useState(null);
-  const [isUserAction, setIsUserAction] = useState(false); // NEW: Track if user manually triggered play/pause
   const navigate = useNavigate();
   const videoRef = useRef(null);
 
@@ -57,18 +56,14 @@ const WatchPage = () => {
       .catch((err) => console.error("Error connecting to SignalR:", err));
 
     newConnection.on("PlaybackUpdated", (playing, timestamp) => {
-      if (isUserAction) return; // Skip updates if host just triggered play/pause
-
       if (videoRef.current) {
         const video = videoRef.current;
         const timeDiff = Math.abs(video.currentTime - timestamp);
 
-        // Sync only if the difference is significant
         if (timeDiff > 0.5) {
           video.currentTime = timestamp;
         }
 
-        // Only trigger play/pause if it's different from the current state
         if (playing !== !video.paused) {
           playing
             ? video.play().catch((err) => console.error("Error playing video:", err))
@@ -82,7 +77,28 @@ const WatchPage = () => {
     });
 
     return () => newConnection.stop().catch((err) => console.error("Error stopping connection:", err));
-  }, [isUserAction]); // Added dependency to allow the effect to respect user actions
+  }, []);
+
+  useEffect(() => {
+    if (isHost && connection && videoRef.current) {
+      const interval = setInterval(() => {
+        connection.invoke("SyncPlayback", localStorage.getItem("username"), isPlaying, videoRef.current.currentTime)
+          .catch((err) => console.error("Error invoking SyncPlayback:", err));
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isHost, connection, isPlaying]);
+
+  const handlePlayPause = () => {
+    if (connection && isHost && videoRef.current) {
+      const video = videoRef.current;
+      const newIsPlaying = !isPlaying;
+      newIsPlaying ? video.play() : video.pause();
+      setIsPlaying(newIsPlaying);
+      connection.invoke("SyncPlayback", localStorage.getItem("username"), newIsPlaying, video.currentTime)
+        .catch((err) => console.error("Error invoking SyncPlayback:", err));
+    }
+  };
 
   const handleFullscreen = () => {
     if (videoRef.current) {
@@ -96,50 +112,6 @@ const WatchPage = () => {
     }
   };
 
-  const handlePlayPause = () => {
-    if (connection && isHost && videoRef.current) {
-      setIsUserAction(true); // Mark as user action to prevent override
-
-      const video = videoRef.current;
-      const newIsPlaying = !isPlaying;
-
-      // Only play/pause if needed
-      if (newIsPlaying !== !video.paused) {
-        newIsPlaying
-          ? video.play().catch((err) => console.error("Error playing video:", err))
-          : video.pause();
-      }
-
-      setIsPlaying(newIsPlaying);
-      connection.invoke("SyncPlayback", localStorage.getItem("username"), newIsPlaying, video.currentTime)
-        .catch((err) => console.error("Error invoking SyncPlayback:", err));
-
-      // Reset user action flag after 1 second
-      setTimeout(() => setIsUserAction(false), 1000);
-    }
-  };
-
-  const handleSeek = (newTime) => {
-    if (connection && isHost && videoRef.current) {
-      videoRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-      connection.invoke("SyncPlayback", localStorage.getItem("username"), isPlaying, newTime)
-        .catch((err) => console.error("Error invoking SyncPlayback:", err));
-    }
-  };
-
-  // Debounce handleTimeUpdate to reduce frequency of sync calls
-  const debouncedTimeUpdate = debounce(() => {
-    if (connection && isHost && videoRef.current) {
-      connection.invoke("SyncPlayback", localStorage.getItem("username"), isPlaying, videoRef.current.currentTime)
-        .catch((err) => console.error("Error invoking SyncPlayback:", err));
-    }
-  }, 500);
-
-  const handleTimeUpdate = () => {
-    debouncedTimeUpdate();
-  };
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4">
       <h1 className="text-3xl font-semibold mb-6">Movie Watch Page</h1>
@@ -150,34 +122,17 @@ const WatchPage = () => {
             src={`${MOVIE_BASE_URL}/movies/sources/mrs.mp4`}
             className="w-full h-auto rounded-lg shadow-lg"
             controls={isHost}
-            onTimeUpdate={handleTimeUpdate}
           />
         </div>
       )}
       {isHost && (
-        <div className="flex space-x-4">
-          <button onClick={handlePlayPause} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md">
-            {isPlaying ? "Pause" : "Play"}
-          </button>
-          <button onClick={() => handleSeek(hostTimestamp - 10)} className="bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-md">
-            Rewind 10s
-          </button>
-          <button onClick={() => handleSeek(hostTimestamp + 10)} className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md">
-            Forward 10s
-          </button>
-        </div>
-      )}
-      {!isHost && (
-        <button
-          onClick={handleFullscreen}
-          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md mt-4"
-        >
-          Fullscreen
+        <button onClick={handlePlayPause} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md">
+          {isPlaying ? "Pause" : "Play"}
         </button>
       )}
-      {!isHost && (
-        <div className="text-lg text-gray-500 mt-4">You are watching the movie in sync with the host.</div>
-      )}
+      <button onClick={handleFullscreen} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md mt-4">
+        Fullscreen
+      </button>
       <ChatComponent connection={connection} />
       <div className="text-lg text-gray-500 mt-4">
         <p>Host Timestamp: {hostTimestamp}</p>
