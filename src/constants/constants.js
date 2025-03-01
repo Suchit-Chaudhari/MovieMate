@@ -1,3 +1,3 @@
-export var BASE_URL = " https://proceeds-fax-damages-be.trycloudflare.com";
-export var MOVIE_BASE_URL = "https://acd0-114-143-138-98.ngrok-free.app"
+export var BASE_URL = "https://950d-43-243-83-232.ngrok-free.app";
+export var MOVIE_BASE_URL = "https://d270-43-243-83-232.ngrok-free.app";
 // http://192.168.1.24:7031
