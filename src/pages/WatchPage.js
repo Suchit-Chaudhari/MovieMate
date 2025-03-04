@@ -5,8 +5,6 @@ import { BASE_URL, MOVIE_BASE_URL } from "../constants/constants";
 import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
 
-const LOGIC_APP_URL = "https://prod-02.northcentralus.logic.azure.com/workflows/d8f674bb74c94ec4a1eeb2a49e36fe58/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=rywwlN76qwqpGLuKRzCGxFlTGxp9xZIitIFGHFEv8yI";
-const BLOB_BASE_URL = "https://movieblob.blob.core.windows.net";
 
 const WatchPage = () => {
   const [connection, setConnection] = useState(null);
@@ -24,18 +22,6 @@ const WatchPage = () => {
     if (!username) {
       navigate("/login");
     }
-    const fetchMovieUrl = async () => {
-      try {
-        const response = await fetch(LOGIC_APP_URL);
-        const data = await response.json();
-        if (data.Path) {
-          setMovieUrl(`${BLOB_BASE_URL}${data.Path}`);
-        }
-      } catch (error) {
-        console.error("Error fetching movie URL:", error);
-      }
-    };
-    fetchMovieUrl();
   }, [navigate]);
 
   useEffect(() => {
@@ -115,16 +101,16 @@ const WatchPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-4">
       <h1 className="text-3xl font-semibold mb-6">Movie Watch Page</h1>
-      {movieUrl && (
+      
         <div className="w-full max-w-4xl mb-6">
           <video
             ref={videoRef}
-            src={`${MOVIE_BASE_URL}/movies/sources/mrs.mp4`}
+            src={MOVIE_BASE_URL}
             className="w-full h-auto rounded-lg shadow-lg"
             controls={isHost}
           />
         </div>
-      )}
+      
       {isHost && (
         <button onClick={handlePlayPause} className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md">
           {isPlaying ? "Pause" : "Play"}
